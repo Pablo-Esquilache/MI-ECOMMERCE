@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Mi Ecommerce</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .checkout-container {
+            display: flex; gap: 40px; margin-top: 100px; margin-bottom: 60px;
+        }
+        .form-section, .summary-section {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            flex: 1;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px;
+        }
+        .summary-item {
+            display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 10px 0;
+        }
+        .summary-total {
+            display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .checkout-container { flex-direction: column; }
+        }
+        .required::after { content: " *"; color: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo"><a href="/">E-Shopper</a></div>
+        </div>
+    </nav>
+
+    <div class="container checkout-container" style="flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px;">
+            <a href="javascript:history.back()" class="btn" style="background: #95a5a6; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 4px; font-size: 16px;"><i class="fas fa-arrow-left"></i> Volver a la tienda</a>
+        </div>
+        
+        <div style="display: flex; gap: 40px; width: 100%;" class="checkout-grid">
+            <!-- Formulario del Cliente -->
+            <div class="form-section">
+                <h2 style="margin-top: 0; margin-bottom: 20px;">Datos de Envío y Facturación</h2>
+                <form id="checkout-form">
+                <h3>Información Personal</h3>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex:1;"><label class="required">Nombre</label><input type="text" id="nombre" required></div>
+                    <div class="form-group" style="flex:1;"><label class="required">Apellido</label><input type="text" id="apellido" required></div>
+                </div>
+                <div class="form-group"><label class="required">Email</label><input type="email" id="email" required></div>
+                <div class="form-group"><label class="required">Teléfono</label><input type="text" id="telefono" required></div>
+                <div class="form-group"><label>Género (Opcional)</label>
+                    <select id="genero">
+                        <option value="">Seleccionar...</option>
+                        <option value="femenino">Femenino</option>
+                        <option value="masculino">Masculino</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                
+                <h3 style="margin-top: 20px;">Dirección de Envío</h3>
+                <div class="form-group"><label class="required">Dirección Completa</label><input type="text" id="direccion" required></div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex:1;"><label class="required">Ciudad</label><input type="text" id="ciudad" required></div>
+                    <div class="form-group" style="flex:1;"><label class="required">Provincia</label><input type="text" id="provincia" required></div>
+                </div>
+                <div class="form-group"><label class="required">Código Postal</label><input type="text" id="codigo_postal" required onchange="calcularEnvio()"></div>
+
+                <h3 style="margin-top: 20px;">Método de Pago</h3>
+                <div class="form-group">
+                    <select id="metodo_pago" required>
+                        <option value="mercadopago">Mercado Pago</option>
+                        <option value="transferencia">Transferencia Bancaria</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-block" style="margin-top: 20px; font-size: 18px;">Confirmar Pedido</button>
+            </form>
+        </div>
+
+        <!-- Resumen del Pedido -->
+        <div class="summary-section">
+            <h2>Resumen del Pedido</h2>
+            <div id="checkout-items"></div>
+            
+            <div class="summary-total" style="font-size: 16px; margin-top: 20px;">
+                <span>Subtotal</span>
+                <span id="resumen-subtotal">$0.00</span>
+            </div>
+            <div class="summary-total" style="border-top: 2px solid var(--border); padding-top: 15px;">
+                <span>Total a Pagar</span>
+                <span id="resumen-total">$0.00</span>
+            </div>
+            <p style="color: #7f8c8d; font-size: 14px; margin-top: 15px; text-align: right; font-style: italic;">El envío es a cargo del cliente y se abona al momento de la entrega.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/checkout.js"></script>
+</body>
+</html>

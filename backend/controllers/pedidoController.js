@@ -1,0 +1,139 @@
+const Pedido = require('../models/Pedido');
+const Cliente = require('../models/Cliente');
+// Servicios que implementaremos luego:
+// const mailer = require('../services/mailer');
+const mercadopagoService = require('../services/mercadopago');
+
+const pedidoController = {
+  createCheckout: async (req, res) => {
+    try {
+      const { cliente, carrito, metodo_envio, metodo_pago } = req.body;
+
+      // 1. Gestionar cliente (ver si existe su email, si no crearlo)
+      let clienteRecord = await Cliente.getByEmail(cliente.email);
+      if (!clienteRecord) {
+        clienteRecord = await Cliente.create(cliente);
+      } else {
+        clienteRecord = await Cliente.update(clienteRecord.id, cliente);
+      }
+
+      // 2. Calcular totales (Aplicando Reglas de Configuración)
+      const db = require('../config/database');
+      let conf = {};
+      try {
+          const { rows } = await db.query('SELECT * FROM configuracion WHERE id = 1');
+          conf = rows[0] || {};
+      } catch(e) { console.error('Error leyendo config en checkout: ', e); }
+
+      let subtotal = 0;
+      const detalles = [];
+      for (let item of carrito) {
+        let precioReal = Number(item.precio);
+        if (conf.descuento_activo) {
+            precioReal = precioReal * (1 - (Number(conf.descuento_porcentaje) || 0) / 100);
+        }
+        // Sobrescribimos el precio en memoria para que MercadoPago lo lea descontado
+        item.precio = precioReal;
+        
+        const itemSubtotal = precioReal * item.cantidad;
+        subtotal += itemSubtotal;
+        detalles.push({
+          producto_id: item.id,
+          cantidad: item.cantidad,
+          precio_unitario: precioReal
+        });
+      }
+
+      // Costo de envio
+      let costo_envio = 0; // Se asume 0 por ahora a falta de API externa
+      if (conf.envio_gratis_activo && subtotal >= conf.envio_gratis_limite) {
+          costo_envio = 0; // Confirmamos que es cero
+      }
+      
+      let total = subtotal + costo_envio;
+
+      const pedidoData = {
+        cliente_id: clienteRecord.id,
+        subtotal,
+        costo_envio,
+        total,
+        metodo_pago
+      };
+
+      // 3. Crear el pedido localmente en la DB
+      const nuevoPedido = await Pedido.createOrder(pedidoData, detalles);
+
+      // 4. Integraciones (MercadoPago si aplica, y enviar Email)
+      let preferenciaMpId = null;
+      let initPoint = null;
+
+      if (metodo_pago === 'mercadopago') {
+        const prefMp = await mercadopagoService.crearPreferencia(nuevoPedido, carrito, clienteRecord);
+        preferenciaMpId = prefMp.id;
+        // Using real init_point to show exact transaction value
+        initPoint = prefMp.init_point; 
+        
+        // Normalmente guardaremos la ref aca, pero por ahora no hay campo en DB
+        // await Pedido.updateMercadopagoRef(nuevoPedido.id, preferenciaMpId);
+      } else {
+        // Enviar mail inmediatamente si es transferencia
+        // await mailer.enviarConfirmacionTransferencia(nuevoPedido, clienteRecord, detalles);
+      }
+
+      res.status(201).json({
+        success: true,
+        pedido: nuevoPedido,
+        mpUrl: initPoint 
+      });
+
+    } catch (error) {
+      console.error("Error en checkout:", error);
+      res.status(500).json({ error: 'Error al procesar el pedido' });
+    }
+  },
+
+  getAllPedidos: async (req, res) => {
+    try {
+      const pedidos = await Pedido.getAll();
+      res.json(pedidos);
+    } catch (error) {
+      res.status(500).json({ error: 'Error al obtener pedidos' });
+    }
+  },
+
+  getPedidoById: async (req, res) => {
+    try {
+      const pedido = await Pedido.getById(req.params.id);
+      if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
+      res.json(pedido);
+    } catch (error) {
+      res.status(500).json({ error: 'Error al obtener pedido' });
+    }
+  },
+
+  updatePedidoStatus: async (req, res) => {
+    try {
+      const { estado } = req.body;
+      const pedidoActualizado = await Pedido.updateStatus(req.params.id, estado);
+      
+      // Disparar emails según el estado manual
+      if (estado === 'enviado' || estado === 'pagado') {
+          const pedidoDetails = await Pedido.getById(req.params.id);
+          if (pedidoDetails && pedidoDetails.email) {
+              const emailService = require('../services/emailService');
+              if (estado === 'enviado') {
+                  emailService.enviarCorreoEnvio(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error enviando correo de envio:', e));
+              } else {
+                  emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error enviando correo de pago (manual):', e));
+              }
+          }
+      }
+
+      res.json(pedidoActualizado);
+    } catch (error) {
+      res.status(500).json({ error: 'Error al actualizar pedido' });
+    }
+  }
+};
+
+module.exports = pedidoController;

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Producto | E-Shopper</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .product-detail-container { margin-top: 100px; display: flex; gap: 40px; margin-bottom: 60px; }
+        .product-gallery { flex: 1; }
+        .main-img { width: 100%; height: 400px; object-fit: contain; background: var(--white); border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 20px;}
+        .thumbnails { display: flex; gap: 15px; }
+        .thumbnails img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; }
+        .thumbnails img:hover { border-color: var(--primary); }
+        .product-info-detail { flex: 1; background: var(--white); padding: 30px; border-radius: 8px; box-shadow: var(--shadow); }
+        h1 { font-size: 32px; margin-bottom: 10px; }
+        .price { font-size: 28px; color: var(--primary); font-weight: bold; margin-bottom: 20px; }
+        .stock-info { font-size: 14px; margin-bottom: 20px; color: var(--light-text); }
+        .description { font-size: 16px; line-height: 1.8; margin-bottom: 30px; }
+        .meta-data { margin-bottom: 30px; font-size: 14px; }
+        .meta-data p { margin-bottom: 5px; }
+        .add-to-cart-section { display: flex; gap: 20px; align-items: center; border-top: 1px solid var(--border); padding-top: 20px;}
+        .qty-input { width: 60px; padding: 10px; border: 1px solid var(--border); border-radius: 4px; text-align: center;}
+        
+        @media (max-width: 768px) {
+            .product-detail-container { flex-direction: column; }
+            .main-img { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo"><a href="/">E-Shopper</a></div>
+            <ul class="nav-links">
+                <li><a href="/">Volver a Inicio</a></li>
+            </ul>
+            <div class="nav-icons">
+                <div class="cart-icon" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cart-count">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container product-detail-container" id="product-detail-content">
+        <!-- Renderizado dinámico desde JS -->
+        <h2>Cargando producto...</h2>
+    </div>
+
+    <!-- Módulo de Carrito Lateral -->
+    <div class="side-cart" id="side-cart">
+        <div class="cart-header">
+            <h3>Tu Carrito</h3>
+            <button class="close-cart" onclick="toggleCart()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-footer">
+            <div class="subtotal"><span>Subtotal:</span><span id="cart-subtotal">$0.00</span></div>
+            <button class="btn btn-block" onclick="goToCheckout()">Ir al Checkout</button>
+        </div>
+    </div>
+    <div class="overlay" id="overlay" onclick="toggleCart()"></div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                document.getElementById('product-detail-content').innerHTML = `<h2>Producto no encontrado o enlace inválido.</h2>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/productos/${productId}`);
+                if (!res.ok) throw new Error("Producto no encontrado");
+                const p = await res.json();
+                
+                const img1 = p.imagen_1 || 'https://via.placeholder.com/600';
+                const img2Attr = p.imagen_2 ? `src="${p.imagen_2}"` : 'style="display:none"';
+                const img3Attr = p.imagen_3 ? `src="${p.imagen_3}"` : 'style="display:none"';
+
+                document.getElementById('product-detail-content').innerHTML = `
+                    <div class="product-gallery">
+                        <img src="${img1}" class="main-img" id="main-product-img">
+                        <div class="thumbnails">
+                            <img src="${img1}" onclick="document.getElementById('main-product-img').src=this.src">
+                            <img ${img2Attr} onclick="document.getElementById('main-product-img').src=this.src">
+                            <img ${img3Attr} onclick="document.getElementById('main-product-img').src=this.src">
+                        </div>
+                    </div>
+                    <div class="product-info-detail">
+                        <h1>${p.nombre}</h1>
+                        <p class="price">$${parseFloat(p.precio).toLocaleString('es-AR')}</p>
+                        <p class="stock-info">Stock disponible: <strong>${p.stock} unidades</strong></p>
+                        
+                        <div class="description">
+                            ${p.descripcion.replace(/\n/g, '<br>')}
+                        </div>
+
+                        <div class="meta-data">
+                            <p><strong>ID:</strong> ${p.id}</p>
+                            <p><strong>Categoría:</strong> <span style="text-transform:capitalize;">${p.categoria || '-'}</span></p>
+                            <p><strong>Peso:</strong> ${p.peso ? p.peso + ' kg' : '-'}</p>
+                            <p><strong>Dimensiones:</strong> ${p.dimensiones || '-'}</p>
+                        </div>
+                        <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px; font-style: italic;">El envío es a cargo del cliente y se abona al momento de la entrega.</p>
+
+                        <div class="add-to-cart-section">
+                            <input type="number" id="detail-qty" class="qty-input" value="1" min="1" max="${p.stock}">
+                            <button class="btn" onclick="agregarMultipleAlCarrito(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${img1}')">
+                                <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+            } catch(e) {
+                document.getElementById('product-detail-content').innerHTML = `<h2>Error: ${e.message}</h2>`;
+            }
+        });
+
+        function agregarMultipleAlCarrito(id, nombre, precio, img) {
+            const qtyInput = document.getElementById('detail-qty');
+            if (!qtyInput) return;
+            const cant = parseInt(qtyInput.value) || 1;
+            
+            // Función expuesta por main.js pero readaptada para sumar n cantidad
+            let itemExistente = carrito.find(item => item.id === id);
+            if (itemExistente) {
+                itemExistente.cantidad += cant;
+            } else {
+                carrito.push({ id, nombre, precio, img, cantidad: cant });
+            }
+            saveCart();
+            toggleCart();
+        }
+    </script>
+</body>
+</html>

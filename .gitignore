@@ -1,0 +1,47 @@
+# Node Modules (Librerías enormes de Backend)
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Variables de Entorno y Secretos (¡Nunca subir claves a Internet!)
+.env
+.env.*
+backend/.env
+backend/.env.*
+*.pem
+
+# Archivos propios del Sistema Operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Archivos de caché
+.npm/
+.yarn/
+.eslintcache
+
+# Logs y bases de datos locales (por seguridad)
+logs/
+*.log
+*.sqlite
+*.db
+
+# Carpetas del Editor de Código (VSCode, IntelliJ, etc)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos temporales o compilados innecesarios
+tmp/
+temp/
+coverage/
+.nyc_output/
+build/
+dist/
