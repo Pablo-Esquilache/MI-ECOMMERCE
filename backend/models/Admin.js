@@ -29,6 +29,16 @@ const Admin = {
     await db.query(query, [hashedPassword, id]);
   },
   
+  setOtp: async (id, otp) => {
+    const query = 'UPDATE administradores SET otp_code = $1 WHERE id = $2';
+    await db.query(query, [otp, id]);
+  },
+  
+  clearOtp: async (id) => {
+    const query = 'UPDATE administradores SET otp_code = NULL WHERE id = $1';
+    await db.query(query, [id]);
+  },
+  
   getDashboardStats: async () => {
     const stats = {};
     

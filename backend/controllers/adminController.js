@@ -207,6 +207,67 @@ const adminController = {
       console.error('Error cambiando password:', e);
       res.status(500).json({ error: 'Error de servidor cambiando clave.' });
     }
+  },
+
+  requestChangeOtp: async (req, res) => {
+    try {
+      const { currentPassword } = req.body;
+      const adminId = req.user.id;
+      
+      const admin = await Admin.getById(adminId);
+      if (!admin) return res.status(404).json({ error: 'La sesión caducó.' });
+
+      const match = await bcrypt.compare(currentPassword, admin.password);
+      if (!match) {
+        return res.status(400).json({ error: 'La Clave actual ingresada no es correcta.' });
+      }
+
+      // Generar 6 dígitos OTP aleatorios
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      await Admin.setOtp(adminId, otp);
+
+      // Despachar el OTP por Mail
+      const htmlMsg = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #2C3E50;">Seguridad: Verificación Doble Factor (2FA)</h2>
+          <p>Has solicitado cambiar la contraseña de tu tienda online. Para confirmar que efectivamente eres tú, ingresa este PIN de seguridad en tu Panel:</p>
+          <div style="background: #f4f6f8; padding: 15px; margin: 25px 0; text-align: center; border-radius: 6px;">
+             <h1 style="color: #3498db; letter-spacing: 10px; margin: 0; font-size: 32px;">${otp}</h1>
+          </div>
+          <p style="color: #7f8c8d; font-size: 13px;">Si tú no iniciaste este flujó de cambio de clave, alguien más conoce tu contraseña actual. Entra al panel e inicia el trámite para cambiarla tú mismo cuanto antes.</p>
+        </div>
+      `;
+      const emailService = require('../services/emailService');
+      await emailService.enviarCorreoHtml(admin.email, 'PIN de Seguridad: Cambio de Contraseña', htmlMsg);
+
+      res.json({ success: true, message: 'Código OTP enviado al correo del comercio.' });
+    } catch (e) {
+      console.error('Error solicitando OTP:', e);
+      res.status(500).json({ error: 'Error del servidor al intentar mandar el código de verificación.' });
+    }
+  },
+
+  confirmChangeOtp: async (req, res) => {
+    try {
+      const { otp, newPassword } = req.body;
+      const adminId = req.user.id;
+
+      const admin = await Admin.getById(adminId);
+      if (!admin) return res.status(404).json({ error: 'Administrador extraviado.' });
+
+      if (!admin.otp_code || admin.otp_code !== otp) {
+        return res.status(400).json({ error: 'El código ingresado es incorrecto.' });
+      }
+
+      const hashedLine = await bcrypt.hash(newPassword, 10);
+      await Admin.updatePassword(adminId, hashedLine);
+      await Admin.clearOtp(adminId);
+
+      res.json({ success: true, message: '¡2FA Exitoso! Contraseña blindada y cambiada.' });
+    } catch (e) {
+      console.error('Error confirmando OTP:', e);
+      res.status(500).json({ error: 'Fallo interno alterando la cuenta.' });
+    }
   }
 };
 

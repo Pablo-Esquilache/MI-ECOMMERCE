@@ -792,30 +792,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const payload = { currentPassword: actual, newPassword: nueva };
             
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Solicitando PIN...';
             btn.disabled = true;
 
             try {
-                const res = await fetch(`${API_URL}/admin/change-password`, {
+                // Paso 1: Solicitar autorización MFA
+                const resOtp = await fetch(`${API_URL}/admin/request-change-otp`, {
                     method: 'POST',
                     headers: authHeaders(),
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ currentPassword: actual })
                 });
-                const data = await res.json();
+                const dataOtp = await resOtp.json();
                 
-                if(res.ok) {
+                if(!resOtp.ok) {
+                    msg.innerText = dataOtp.error || 'Credenciales fallidas.';
+                    btn.innerHTML = 'Cambiar Clave';
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Paso 2: Interceptar UI (Prompt Sencillo)
+                const pin = prompt(`🛡️ ${dataOtp.message}\nRevisa tu bandeja de entrada y escribe aquí el PIN de seguridad de 6 dígitos:`);
+                
+                if(!pin) {
+                    msg.innerText = 'Trámite cancelado por el usuario.';
+                    btn.innerHTML = 'Cambiar Clave';
+                    btn.disabled = false;
+                    return;
+                }
+
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando PIN...';
+
+                // Paso 3: Confirmar y Guardar
+                const resConf = await fetch(`${API_URL}/admin/confirm-change-otp`, {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ otp: pin, newPassword: nueva })
+                });
+                const dataConf = await resConf.json();
+
+                if(resConf.ok) {
                     msg.style.color = '#27ae60';
-                    msg.innerText = data.message;
+                    msg.innerText = dataConf.message;
                     formPwd.reset();
                 } else {
-                    msg.innerText = data.error || 'Autenticación fallida.';
+                    msg.style.color = '#e74c3c';
+                    msg.innerText = dataConf.error || 'Falla de seguridad.';
                 }
             } catch(e) {
                 msg.innerText = 'Servidor inaccesible.';
             } finally {
                 btn.innerHTML = 'Cambiar Clave';
                 btn.disabled = false;
-                setTimeout(() => msg.innerText = '', 5000);
+                setTimeout(() => msg.innerText = '', 8000);
             }
         });
     }
