@@ -704,6 +704,9 @@ async function fetchConfiguracion() {
             document.getElementById('conf-desc-activo').checked = conf.descuento_activo;
             document.getElementById('conf-desc-porcentaje').value = conf.descuento_porcentaje || 0;
             
+            document.getElementById('conf-sync-activo').checked = conf.sync_activo || false;
+            document.getElementById('conf-sync-key').value = conf.sync_api_key || '';
+            
             // Actualizar Saludo
             document.getElementById('admin-name').innerText = conf.admin_nombre || 'Admin';
             localStorage.setItem('admin_name', conf.admin_nombre || 'Admin');
@@ -737,7 +740,10 @@ async function guardarConfiguracion() {
         envio_gratis_limite: Number(document.getElementById('conf-envio-limite').value) || 0,
         
         descuento_activo: document.getElementById('conf-desc-activo').checked,
-        descuento_porcentaje: Number(document.getElementById('conf-desc-porcentaje').value) || 0
+        descuento_porcentaje: Number(document.getElementById('conf-desc-porcentaje').value) || 0,
+        
+        sync_activo: document.getElementById('conf-sync-activo').checked,
+        sync_api_key: document.getElementById('conf-sync-key').value.trim()
     };
 
     try {
@@ -770,6 +776,11 @@ async function guardarConfiguracion() {
         console.error('Error guardando configuracion:', e);
         alert('Error de red al intentar guardar');
     }
+}
+
+function generarTokenSync() {
+    const randomStr = Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
+    document.getElementById('conf-sync-key').value = 'OMNI-' + randomStr.toUpperCase();
 }
 
 // --- CAMBIAR CONTRASEÑA EN PANEL ---

@@ -15,6 +15,7 @@ const enviosRoutes = require('./routes/envios');
 const webhooksRoutes = require('./routes/webhooks');
 const contactoRoutes = require('./routes/contacto');
 const configuracionRoutes = require('./routes/configuracion');
+const syncRoutes = require('./routes/sync');
 
 // Middlewares
 app.use(cors());
@@ -35,7 +36,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/envios', enviosRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/contacto', contactoRoutes);
+app.use('/api/contacto', contactoRoutes);
 app.use('/api/configuracion', configuracionRoutes);
+app.use('/api/sync', syncRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
