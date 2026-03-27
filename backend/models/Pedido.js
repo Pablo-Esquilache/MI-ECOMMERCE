@@ -78,7 +78,7 @@ const Pedido = {
 
   updateStatus: async (id, status) => {
     try {
-        const query = 'UPDATE pedidos SET estado = $1 WHERE id = $2 RETURNING *';
+        const query = 'UPDATE pedidos SET estado = $1, sincronizado_local = FALSE WHERE id = $2 RETURNING *';
         const { rows } = await db.query(query, [status, id]);
         return rows[0];
     } catch (e) {

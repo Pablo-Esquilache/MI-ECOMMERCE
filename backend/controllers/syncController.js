@@ -34,15 +34,24 @@ const syncController = {
   upsertProduct: async (req, res) => {
     try {
       const p = req.body;
-      if (!p.id || !p.nombre || p.precio == null) return res.status(400).json({error: 'Faltan datos'});
+      if (!p.id) return res.status(400).json({error: 'Falta el ID del producto'});
 
-      const query = "INSERT INTO productos (id, nombre, descripcion, precio, precio_oferta, stock, url_imagen, categoria, destacada) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, descripcion = EXCLUDED.descripcion, precio = EXCLUDED.precio, precio_oferta = EXCLUDED.precio_oferta, stock = EXCLUDED.stock, url_imagen = EXCLUDED.url_imagen, categoria = EXCLUDED.categoria, destacada = EXCLUDED.destacada, sincronizado_local = TRUE";
+      // Utilizamos COALESCE para que si la app local no manda nombre o precio, se mantenga el valor que ya existía en la Nube
+      const query = `
+        INSERT INTO productos (id, nombre, descripcion, precio, stock, categoria) 
+        VALUES ($1, $2, '', $3, $4, 'otros') 
+        ON CONFLICT (id) DO UPDATE SET 
+          nombre = CASE WHEN EXCLUDED.nombre = '' THEN productos.nombre ELSE EXCLUDED.nombre END,
+          precio = CASE WHEN EXCLUDED.precio = -1 THEN productos.precio ELSE EXCLUDED.precio END,
+          stock  = CASE WHEN EXCLUDED.stock = -999999 THEN productos.stock ELSE EXCLUDED.stock END,
+          sincronizado_local = TRUE
+      `;
       
-      await db.query(query, [
-        p.id, p.nombre, p.descripcion || '', p.precio, 
-        p.precio_oferta || null, p.stock || 0, p.url_imagen || '', 
-        p.categoria || 'otros', p.destacada || false
-      ]);
+      const safeNombre = p.nombre || '';
+      const safePrecio = p.precio != null ? Number(p.precio) : -1;
+      const safeStock = p.stock != null ? Number(p.stock) : -999999;
+
+      await db.query(query, [p.id, safeNombre, safePrecio, safeStock]);
       
       res.json({ success: true, message: "Producto " + p.id + " sincronizado en la Nube."});
     } catch (e) {

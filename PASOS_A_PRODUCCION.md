@@ -69,10 +69,16 @@ Una vez alojados en un servidor público (Render, etc), la ruta de webhooks de t
 ### D. Cierre de Fronteras API (CORS)
 **Importante:** En cuanto tengamos asignado el Dominio Público Oficial (ej: `pablolibros.com`), deberemos entrar al archivo `backend/app.js` y bloquear la compuerta de la línea `app.use(cors())` indicando que únicamente acepte conexiones webs que vengan de ese dominio exacto de tu marca. Esto evitará que piratas informáticos conecten sus propias páginas a nuestra Base de Datos para robar inventario.
 
----
+## 📋 4. Lo que tenés que pasarme a mí (Asistente)
 
-### ¿Cuál es la ruta actual del plan?
-Si te das el visto bueno a este diagrama, los próximos pasos que ejecutaré por ti serán:
-1. Yo me encargaré automáticamente del **Punto 2** (Modificar las URLs del código para que se adapten a la nube sin romperse).
-2. Luego frenaré la marcha para darte tiempo a que generes tu clave de Gmail y la pruebes.
-3. Luego, elegimos plataforma y subimos la base de datos PostgreSQL.
+Una vez que crees los servicios en Render, necesito que me envíes **exactamente estos 2 datos** que te dará la plataforma:
+
+1. **De la Base de Datos (PostgreSQL en Render):**
+   - Necesito la **External Database URL** (URL externa de la base de datos).
+   - *¿Por qué la necesito?* La usaré temporalmente desde tu computadora local para conectarme a esa nueva base de datos vacía y ejecutar nuestro script `init_db.js`. Este script lo único que hace es "crear los moldes" o tablas (`productos`, `pedidos`, `usuarios`, etc.) en la nube, ya que la base de datos de Render nace totalmente en blanco. Una vez ejecutado este script, la base de datos quedará lista para recibir pedidos.
+
+2. **Del Web Service (El Backend en Render):**
+   - Necesito la **URL pública** que te asigne Render (por ejemplo: `https://mi-tienda-e3b2.onrender.com`).
+   - *¿Por qué la necesito?* Para configurar MercadoPago correctamente, ajustando el webhook y el redireccionamiento para que funcione con tu dominio definitivo.
+
+*(Nota: ¡No te olvides que todas las variables de entorno como tu clave de Gmail y tu token de MercadoPago las deberás pegar tú mismo en la solapa "Environment" de tu Web Service en Render!)*

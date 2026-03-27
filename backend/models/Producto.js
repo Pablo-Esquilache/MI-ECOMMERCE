@@ -25,8 +25,8 @@ const Producto = {
   create: async (data) => {
     const { nombre, descripcion, precio, stock, categoria, sku, peso, dimensiones, imagen_1, imagen_2, imagen_3 } = data;
     const query = `
-      INSERT INTO productos (nombre, descripcion, precio, stock, categoria, sku, peso, dimensiones, imagen_1, imagen_2, imagen_3)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      INSERT INTO productos (nombre, descripcion, precio, stock, categoria, sku, peso, dimensiones, imagen_1, imagen_2, imagen_3, sincronizado_local)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE)
       RETURNING *
     `;
     const values = [nombre, descripcion, precio, stock || 0, categoria, sku, peso, dimensiones, imagen_1, imagen_2, imagen_3];
@@ -40,7 +40,8 @@ const Producto = {
       UPDATE productos 
       SET nombre = $1, descripcion = $2, precio = $3, stock = $4, categoria = $5, 
           sku = $6, peso = $7, dimensiones = $8, imagen_1 = coalesce($9, imagen_1), 
-          imagen_2 = coalesce($10, imagen_2), imagen_3 = coalesce($11, imagen_3)
+          imagen_2 = coalesce($10, imagen_2), imagen_3 = coalesce($11, imagen_3),
+          sincronizado_local = FALSE
       WHERE id = $12
       RETURNING *
     `;

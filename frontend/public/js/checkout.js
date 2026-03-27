@@ -75,7 +75,7 @@ async function procesarCheckout(e) {
         btn.innerText = "Procesando...";
         btn.disabled = true;
 
-        const response = await fetch('http://localhost:3000/api/pedidos/checkout', {
+        const response = await fetch('/api/pedidos/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
