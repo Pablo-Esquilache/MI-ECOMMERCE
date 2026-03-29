@@ -126,7 +126,7 @@ function renderPaginationMain(totalPages, currentArray) {
     const scrollToProducts = () => {
         const section = document.getElementById('productos');
         if (section) {
-            window.scrollTo({ top: section.offsetTop - 80, behavior: 'smooth' });
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 
