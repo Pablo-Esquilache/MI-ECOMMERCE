@@ -82,3 +82,27 @@ Una vez que crees los servicios en Render, necesito que me envíes **exactamente
    - *¿Por qué la necesito?* Para configurar MercadoPago correctamente, ajustando el webhook y el redireccionamiento para que funcione con tu dominio definitivo.
 
 *(Nota: ¡No te olvides que todas las variables de entorno como tu clave de Gmail y tu token de MercadoPago las deberás pegar tú mismo en la solapa "Environment" de tu Web Service en Render!)*
+
+---
+
+## 🖼️ 5. Reemplazo de Imágenes y Recursos Visuales (Tu Marca)
+
+Antes de salir al público (o poco después de subir la página), debés personalizar el e-commerce cambiando las fotos genéricas por las **fotos reales de tu marca y local**.
+
+Todos estos cambios de código los tenés que hacer dentro del archivo `frontend/public/index.html` (y en tu base de datos para los productos):
+
+1. **Logo de la Barra de Navegación (Navbar):**
+   - Actualmente es un texto que dice `E-Shopper`. Está en la línea del `<div class="logo">`.
+   - **Qué hacer:** Reemplazar el texto corto por tu nombre, o bien insertar una etiqueta `<img src="ruta-de-tu-logo.png" alt="Mi Marca">` para que aparezca el isotipo oficial del comercio.
+
+2. **Carrusel de Imágenes Principales (Hero Section):**
+   - Actualmente hay 3 fondos gigantes sacados de Unsplash (fotos de librerías/tecnología).
+   - **Qué hacer:** Buscar el `id="inicio"` o `.carousel-bg`. Reemplazar las tres URLs que están dentro de los `style="background-image: url('...')"` por las URLs de fotos reales de tu local o productos estrella. *(Recomendado: Imágenes horizontales de excelente calidad, aprox. 1920x1080 píxeles).*
+
+3. **Sección "Quiénes Somos":**
+   - **Las 2 Fotos Principales:** Son los recuadros altos de 450px que acompañan la historia del comercio. Reemplazá las URLs de Unsplash en los div `<div class="about-img">`.
+   - **La Tira de 5 Miniaturas (Galería Inferior):** Buscar el bloque `<div class="about-mini-gallery">`. Vas a ver 5 etiquetas `<img>`. Reemplazá el contenido del `src="..."` por 5 fotos hermosas de detalles de tu negocio (mostrador, café, útiles, fachada). *(Recomendado: Imágenes cuadradas o con el motivo bien centrado, ya que se mostrarán en 300px).*
+
+4. **Productos del Catálogo:**
+   - Actualmente insertamos una base de datos de 20 productos de librería con fotos descargadas temporalmente de internet (`reset_db.js`). 
+   - **Qué hacer:** Esto no requiere programación. Desde tu propio programa facturador físico (Electron), simplemente seleccioná o agregá la URL real de la foto de cada producto y hacé clic en "Actualizar/Guardar" para que se sincronice y pise nuestra foto genética en la Nube.
