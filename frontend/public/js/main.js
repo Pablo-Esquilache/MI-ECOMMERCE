@@ -123,11 +123,18 @@ function renderPaginationMain(totalPages, currentArray) {
     
     if(totalPages <= 1) return;
 
+    const scrollToProducts = () => {
+        const section = document.getElementById('productos');
+        if (section) {
+            window.scrollTo({ top: section.offsetTop - 80, behavior: 'smooth' });
+        }
+    };
+
     const btnPrev = document.createElement('button');
     btnPrev.innerText = '< Anterior';
     btnPrev.className = 'btn-pag ' + (currentPageMain === 1 ? 'disabled' : '');
     if(currentPageMain > 1) {
-        btnPrev.onclick = () => { currentPageMain--; renderProductos(currentArray); };
+        btnPrev.onclick = () => { currentPageMain--; renderProductos(currentArray); scrollToProducts(); };
     }
     pagCont.appendChild(btnPrev);
 
@@ -136,7 +143,7 @@ function renderPaginationMain(totalPages, currentArray) {
         btn.innerText = i;
         btn.className = 'btn-pag ' + (i === currentPageMain ? 'active' : '');
         if(i !== currentPageMain) {
-            btn.onclick = () => { currentPageMain = i; renderProductos(currentArray); };
+            btn.onclick = () => { currentPageMain = i; renderProductos(currentArray); scrollToProducts(); };
         }
         pagCont.appendChild(btn);
     }
@@ -145,7 +152,7 @@ function renderPaginationMain(totalPages, currentArray) {
     btnNext.innerText = 'Siguiente >';
     btnNext.className = 'btn-pag ' + (currentPageMain === totalPages ? 'disabled' : '');
     if(currentPageMain < totalPages) {
-        btnNext.onclick = () => { currentPageMain++; renderProductos(currentArray); };
+        btnNext.onclick = () => { currentPageMain++; renderProductos(currentArray); scrollToProducts(); };
     }
     pagCont.appendChild(btnNext);
 }
