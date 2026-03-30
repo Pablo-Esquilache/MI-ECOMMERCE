@@ -21,6 +21,16 @@ transporter.verify(function (error, success) {
     }
 });
 
+const db = require('../config/database');
+
+const getAdminEmail = async () => {
+    try {
+        const { rows } = await db.query('SELECT email_admin FROM configuracion WHERE id = 1');
+        if (rows.length > 0 && rows[0].email_admin) return rows[0].email_admin;
+    } catch (e) { console.error('Error fetching email_admin', e); }
+    return process.env.EMAIL_USER || 'admin@tienda.com';
+};
+
 const simularEnvio = (opciones) => {
     console.log('\n--- 📧 SIMULACIÓN DE ENVÍO DE CORREO ---');
     console.log(`De: ${opciones.from || 'Sistema'}`);
@@ -67,6 +77,7 @@ const emailService = {
             try {
                 await transporter.sendMail(mailOptions);
                 console.log(`Correo de pago confirmado enviado a ${clienteMail}.`);
+                console.log(`Correo de pago confirmado enviado a ${cliente_email}.`);
             } catch (error) {
                 console.error('Error al enviar correo de pago (real):', error);
                 simularEnvio(mailOptions);
@@ -76,27 +87,64 @@ const emailService = {
         }
     },
 
-    enviarCorreoEnvio: async (clienteMail, detallesPedido) => {
+    enviarCorreoEnvio: async (cliente_email, pedidoData) => {
+        const pId = pedidoData.id;
         const mailOptions = {
             from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
-            to: clienteMail,
-            subject: `Tu pedido #${detallesPedido.id} está en camino 🚚`,
+            to: cliente_email,
+            subject: `Tu pedido #${pId} está en camino 🚚`,
             html: `<h1>¡Tu pedido ha sido despachado!</h1>
-                   <p>El pedido #${detallesPedido.id} ya se encuentra en camino hacia tu domicilio o sucursal seleccionada.</p>
+                   <p>El pedido #${pId} ya se encuentra en camino hacia tu domicilio o sucursal seleccionada.</p>
                    <p>¡Esperamos que lo disfrutes!</p>`
         };
 
         if (useRealEmail) {
             try {
                 await transporter.sendMail(mailOptions);
-                console.log(`Correo de orden enviada notificado a ${clienteMail}.`);
+                console.log(`Correo de orden enviada notificado a ${cliente_email}.`);
             } catch (error) {
                 console.error('Error al enviar correo de despacho (real):', error);
                 simularEnvio(mailOptions);
             }
         } else {
-            simularEnvio(mailOptions);
+            console.log('\n=======================================');
+            console.log(`[MOCK EMAIL] "Orden Enviada" => Para el Cliente: ${cliente_email}`);
+            console.log(`Orden #${pId} en camino.`);
+            console.log('=======================================\n');
         }
+    },
+
+    enviarCorreoEntregado: async (cliente_email, pedidoData) => {
+        const pId = pedidoData.id;
+        const mailOptions = {
+            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            to: cliente_email,
+            subject: `¡Tu pedido #${pId} ha sido Entregado! 🎉`,
+            html: `<h1>¡Pedido Entregado!</h1>
+                   <p>Hola, queríamos confirmarte que tu pedido #${pId} figura como entregado.</p>
+                   <p>Esperamos que lo disfrutes mucho. ¡Gracias por confiar en nosotros!</p>`
+        };
+
+        if (useRealEmail) {
+            try { await transporter.sendMail(mailOptions); console.log(`Correo de entrega enviado a ${cliente_email}.`); } 
+            catch (error) { simularEnvio(mailOptions); }
+        } else { simularEnvio(mailOptions); }
+    },
+
+    enviarCorreoCancelado: async (clienteMail, detallesPedido) => {
+        const mailOptions = {
+            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            to: clienteMail,
+            subject: `Pedido #${detallesPedido.id} Cancelado`,
+            html: `<h1>Pedido Cancelado</h1>
+                   <p>Hola, te informamos que tu pedido #${detallesPedido.id} ha sido cancelado.</p>
+                   <p>Si tienes alguna duda o consideras que se trata de un error, por favor contáctanos respondiendo a este correo.</p>`
+        };
+
+        if (useRealEmail) {
+            try { await transporter.sendMail(mailOptions); console.log(`Correo de cancelación enviado a ${clienteMail}.`); } 
+            catch (error) { simularEnvio(mailOptions); }
+        } else { simularEnvio(mailOptions); }
     },
 
     enviarCorreoHtml: async (toEmail, subject, htmlContent) => {
@@ -121,29 +169,57 @@ const emailService = {
     },
 
     enviarCorreoNuevaVentaAdmin: async (detallesPedido) => {
+        const adminEmail = await getAdminEmail();
         const mailOptions = {
             from: process.env.EMAIL_USER || '"Tienda Online Venta" <noreply@tienda.com>',
-            // Enviamos al propio admin
-            to: process.env.EMAIL_USER || 'admin@tienda.com',
+            to: adminEmail,
             subject: `💰 ¡Nueva Venta! Pedido #${detallesPedido.id}`,
             html: `<h1>¡Felicitaciones, ingresó una nueva venta!</h1>
                    <p>El sistema acaba de procesar el pago del <strong>Pedido #${detallesPedido.id}</strong>.</p>
                    <p>Monto total cobrado: <strong>$${detallesPedido.total}</strong></p>
                    <p>Email del cliente: ${detallesPedido.email || 'No registrado'}</p>
-                   <p>Por favor, revisa tu Panel de Administrador web o tu Aplicación local de Punto de Venta para prepararlo.</p>`
+                   <p>Por favor, revisa tu Panel de Administrador para prepararlo.</p>`
         };
 
         if (useRealEmail) {
-            try {
-                await transporter.sendMail(mailOptions);
-                console.log(`[Admin-Aviso] Correo de nueva venta enviado al administrador.`);
-            } catch (error) {
-                console.error('Error al enviar alerta al admin (real):', error);
-                simularEnvio(mailOptions);
-            }
-        } else {
-            simularEnvio(mailOptions);
-        }
+            try { await transporter.sendMail(mailOptions); console.log(`[Admin] Correo de nueva venta enviado al administrador.`); } 
+            catch (error) { simularEnvio(mailOptions); }
+        } else { simularEnvio(mailOptions); }
+    },
+
+    notificarAdminNuevoPedido: async (pedidoData) => {
+        const adminEmail = await getAdminEmail();
+        const mailOptions = {
+            from: process.env.EMAIL_USER || '"Sistema Tienda" <noreply@tienda.com>',
+            to: adminEmail,
+            subject: `[NUEVO PEDIDO] #${pedidoData.id} Creado en estado Pendiente`,
+            html: `<h3>Se ha creado un nuevo pedido en el sistema.</h3>
+                   <p>El cliente ha finalizado el carrito y se generó el pedido <strong>#${pedidoData.id}</strong> por $${pedidoData.total}.</p>
+                   <p>El estado actual es <strong>Pendiente</strong>.</p>
+                   <p>Método de pago seleccionado: ${pedidoData.metodo_pago}</p>`
+        };
+
+        if (useRealEmail) {
+            try { await transporter.sendMail(mailOptions); console.log(`[Admin] Aviso de nuevo pedido enviado al admin.`); } 
+            catch (error) { simularEnvio(mailOptions); }
+        } else { simularEnvio(mailOptions); }
+    },
+
+    notificarAdminCambioEstado: async (pedidoData, nuevoEstado) => {
+        const adminEmail = await getAdminEmail();
+        const mailOptions = {
+            from: process.env.EMAIL_USER || '"Sistema Tienda" <noreply@tienda.com>',
+            to: adminEmail,
+            subject: `[CAMBIO DE ESTADO] Pedido #${pedidoData.id} -> ${nuevoEstado.toUpperCase()}`,
+            html: `<h3>Actualización de Pedido</h3>
+                   <p>El pedido <strong>#${pedidoData.id}</strong> ha cambiado su estado a: <strong>${nuevoEstado.toUpperCase()}</strong>.</p>
+                   <p>Total del pedido: $${pedidoData.total}</p>`
+        };
+
+        if (useRealEmail) {
+            try { await transporter.sendMail(mailOptions); console.log(`[Admin] Aviso de cambio de estado a ${nuevoEstado} enviado.`); } 
+            catch (error) { simularEnvio(mailOptions); }
+        } else { simularEnvio(mailOptions); }
     }
 };
 

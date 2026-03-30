@@ -682,6 +682,7 @@ async function fetchConfiguracion() {
         
         if(conf.id) {
             document.getElementById('conf-admin-nombre').value = conf.admin_nombre || '';
+            document.getElementById('conf-email-admin').value = conf.email_admin || '';
             document.getElementById('conf-email').value = conf.email || '';
             document.getElementById('conf-telefono').value = conf.telefono || '';
             document.getElementById('conf-direccion').value = conf.direccion || '';
@@ -720,6 +721,7 @@ async function guardarConfiguracion() {
     // Recolectar datos
     const payload = {
         admin_nombre: document.getElementById('conf-admin-nombre').value.trim(),
+        email_admin: document.getElementById('conf-email-admin').value.trim(),
         email: document.getElementById('conf-email').value.trim(),
         telefono: document.getElementById('conf-telefono').value.trim(),
         direccion: document.getElementById('conf-direccion').value.trim(),

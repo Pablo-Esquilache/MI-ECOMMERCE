@@ -87,7 +87,7 @@ const adminController = {
   updateConfiguracion: async (req, res) => {
     try {
       const {
-        email, telefono, direccion, admin_nombre,
+        email, telefono, direccion, admin_nombre, email_admin,
         instagram_activo, instagram_url, facebook_activo, facebook_url,
         tiktok_activo, tiktok_url, twitter_activo, twitter_url,
         banner_activo, banner_texto,
@@ -107,7 +107,7 @@ const adminController = {
           banner_activo = $13, banner_texto = $14,
           descuento_activo = $15, descuento_porcentaje = $16,
           envio_gratis_activo = $17, envio_gratis_limite = $18,
-          sync_activo = $19, sync_api_key = $20
+          sync_activo = $19, sync_api_key = $20, email_admin = $21
         WHERE id = 1
         RETURNING *
       `;
@@ -119,7 +119,7 @@ const adminController = {
         !!banner_activo, banner_texto||'',
         !!descuento_activo, descuento_porcentaje||0,
         !!envio_gratis_activo, envio_gratis_limite||0,
-        !!sync_activo, sync_api_key||''
+        !!sync_activo, sync_api_key||'', email_admin||''
       ];
 
       const { rows } = await db.query(query, values);

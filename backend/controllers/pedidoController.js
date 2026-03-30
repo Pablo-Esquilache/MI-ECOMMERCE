@@ -77,6 +77,9 @@ const pedidoController = {
       // 3. Crear el pedido localmente en la DB
       const nuevoPedido = await Pedido.createOrder(pedidoData, detalles);
 
+      const emailService = require('../services/emailService');
+      emailService.notificarAdminNuevoPedido(nuevoPedido).catch(e => console.error('Error notif admin nuevo pedido', e));
+
       // 4. Integraciones (MercadoPago si aplica, y enviar Email)
       let preferenciaMpId = null;
       let initPoint = null;
@@ -130,15 +133,23 @@ const pedidoController = {
       const { estado } = req.body;
       const pedidoActualizado = await Pedido.updateStatus(req.params.id, estado);
       
-      // Disparar emails según el estado manual
-      if (estado === 'enviado' || estado === 'pagado') {
-          const pedidoDetails = await Pedido.getById(req.params.id);
-          if (pedidoDetails && pedidoDetails.email) {
-              const emailService = require('../services/emailService');
+      const emailService = require('../services/emailService');
+      const pedidoDetails = await Pedido.getById(req.params.id);
+
+      if (pedidoDetails) {
+          // 1. Siempre notificar al ADMIN de cualquier cambio de estado
+          emailService.notificarAdminCambioEstado(pedidoDetails, estado).catch(e => console.error(e));
+
+          // 2. Notificar al CLIENTE si corresponde
+          if (pedidoDetails.email) {
               if (estado === 'enviado') {
-                  emailService.enviarCorreoEnvio(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error enviando correo de envio:', e));
-              } else {
-                  emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error enviando correo de pago (manual):', e));
+                  emailService.enviarCorreoEnvio(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
+              } else if (estado === 'pagado') {
+                  emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
+              } else if (estado === 'cancelado') {
+                  emailService.enviarCorreoCancelado(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
+              } else if (estado === 'entregado') {
+                  emailService.enviarCorreoEntregado(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
               }
           }
       }

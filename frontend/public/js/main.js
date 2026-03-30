@@ -15,8 +15,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoriaFiltro = document.getElementById('categoria-filtro');
     if(categoriaFiltro) categoriaFiltro.addEventListener('change', filtrarProductos);
 
+    // Formulario de Contacto
     const formContacto = document.getElementById('form-contacto');
-    if(formContacto) formContacto.addEventListener('submit', procesarContacto);
+    if (formContacto) {
+        formContacto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = formContacto.querySelector('button[type="submit"]');
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+            try {
+                const payload = {
+                    nombre: document.getElementById('contacto-nombre').value,
+                    email: document.getElementById('contacto-email').value,
+                    asunto: document.getElementById('contacto-asunto').value,
+                    mensaje: document.getElementById('contacto-mensaje').value
+                };
+                const res = await fetch(`${API_URL}/contacto`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message || "Mensaje enviado exitosamente.");
+                    formContacto.reset();
+                } else {
+                    alert(data.error || "Ocurrió un error al enviar el mensaje.");
+                }
+            } catch (error) {
+                console.error('Error enviando contacto:', error);
+                alert("Error de red. Intenta nuevamente.");
+            }
+            btn.innerText = "Enviar Mensaje";
+            btn.disabled = false;
+        });
+    }
 });
 
 async function checkMercadoPagoReturn() {
