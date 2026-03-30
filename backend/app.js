@@ -36,7 +36,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/envios', enviosRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/contacto', contactoRoutes);
-app.use('/api/contacto', contactoRoutes);
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/sync', syncRoutes);
 
