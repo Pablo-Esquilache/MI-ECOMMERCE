@@ -7,7 +7,7 @@ const mercadopagoService = require('../services/mercadopago');
 const pedidoController = {
   createCheckout: async (req, res) => {
     try {
-      const { cliente, carrito, metodo_envio, metodo_pago } = req.body;
+      let { cliente, carrito, metodo_envio, metodo_pago } = req.body;
 
       // 1. Gestionar cliente (ver si existe su email, si no crearlo)
       let clienteRecord = await Cliente.getByEmail(cliente.email);

@@ -12,9 +12,13 @@ router.get('/mercadopago/return', async (req, res) => {
             await Pedido.updateStatus(externalRef, 'pagado');
             
             const pedidoDetails = await Pedido.getById(externalRef);
-            if (pedidoDetails && pedidoDetails.email) {
+            if (pedidoDetails) {
                 const emailService = require('../services/emailService');
-                emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error email webhook return:', e));
+                if (pedidoDetails.email) {
+                    emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error email webhook return:', e));
+                }
+                // [NUEVO] Notificar al Admin
+                emailService.enviarCorreoNuevaVentaAdmin(pedidoDetails).catch(e => console.error('Error admin email return:', e));
             }
             
             return res.json({ success: true, message: 'Orden actualizada a pagado con éxito' });
@@ -58,9 +62,13 @@ router.post('/mercadopago', async (req, res) => {
                     console.log(`Orden ${paymentInfo.external_reference} ha sido marcada como PAGADO en base de datos.`);
                     
                     const pedidoDetails = await Pedido.getById(paymentInfo.external_reference);
-                    if (pedidoDetails && pedidoDetails.email) {
+                    if (pedidoDetails) {
                         const emailService = require('../services/emailService');
-                        emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error email webhook POST:', e));
+                        if (pedidoDetails.email) {
+                            emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error('Error email webhook POST:', e));
+                        }
+                        // [NUEVO] Notificar al Admin Server-to-Server
+                        emailService.enviarCorreoNuevaVentaAdmin(pedidoDetails).catch(e => console.error('Error admin email POST:', e));
                     }
                 }
             } catch(apiError) {

@@ -118,6 +118,32 @@ const emailService = {
         } else {
             simularEnvio(mailOptions);
         }
+    },
+
+    enviarCorreoNuevaVentaAdmin: async (detallesPedido) => {
+        const mailOptions = {
+            from: process.env.EMAIL_USER || '"Tienda Online Venta" <noreply@tienda.com>',
+            // Enviamos al propio admin
+            to: process.env.EMAIL_USER || 'admin@tienda.com',
+            subject: `💰 ¡Nueva Venta! Pedido #${detallesPedido.id}`,
+            html: `<h1>¡Felicitaciones, ingresó una nueva venta!</h1>
+                   <p>El sistema acaba de procesar el pago del <strong>Pedido #${detallesPedido.id}</strong>.</p>
+                   <p>Monto total cobrado: <strong>$${detallesPedido.total}</strong></p>
+                   <p>Email del cliente: ${detallesPedido.email || 'No registrado'}</p>
+                   <p>Por favor, revisa tu Panel de Administrador web o tu Aplicación local de Punto de Venta para prepararlo.</p>`
+        };
+
+        if (useRealEmail) {
+            try {
+                await transporter.sendMail(mailOptions);
+                console.log(`[Admin-Aviso] Correo de nueva venta enviado al administrador.`);
+            } catch (error) {
+                console.error('Error al enviar alerta al admin (real):', error);
+                simularEnvio(mailOptions);
+            }
+        } else {
+            simularEnvio(mailOptions);
+        }
     }
 };
 

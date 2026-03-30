@@ -38,14 +38,14 @@ const mercadopagoService = {
           surname: cliente.apellido,
           email: cliente.email,
         },
-        backUrls: {
-          success: `${basePath}/`,
-          failure: `${basePath}/`,
-          pending: `${basePath}/`,
+        back_urls: {
+          success: `${basePath}/?status=success`,
+          failure: `${basePath}/?status=failure`,
+          pending: `${basePath}/?status=pending`,
         },
-        autoReturn: 'approved',
-        externalReference: pedido.id.toString(), // Para vincularlo con el pedido
-        notificationUrl: `${basePath}/api/webhooks/mercadopago`, // Habilitar en produccion / ngrok / localtunnel
+        auto_return: 'approved',
+        external_reference: pedido.id.toString(), // Camel/Snake usually both accepted here, pero por las dudas dejamos como estaba y mandamos en docs
+        notification_url: `${basePath}/api/webhooks/mercadopago`,
       };
 
       // 3. Crear preferencia
