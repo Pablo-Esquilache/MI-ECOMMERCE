@@ -56,9 +56,35 @@ async function fetchProductos() {
         if (!response.ok) throw new Error(data.error || 'Server Error');
         productos = data;
         renderProductos(productos);
+        validarCarrito(productos); // Silenciosamente corrige precios viejos
     } catch (error) {
         console.error('Error cargando productos:', error);
         document.getElementById('grid-productos').innerHTML = `<p style="color:red">Error al cargar productos: ${error.message}</p>`;
+    }
+}
+
+// Nueva función de Auto-Actualización de Precios del Carrito
+function validarCarrito(productosDB) {
+    let hayCambios = false;
+    carrito.forEach(cartItem => {
+        const prodOficial = productosDB.find(p => p.id === cartItem.id);
+        if (!prodOficial || Number(prodOficial.stock) < cartItem.cantidad) {
+            cartItem.invalido = true;
+            cartItem.invalidoMsg = 'Agotado / Sin Stock';
+            hayCambios = true;
+        } else if (cartItem.precio !== Number(prodOficial.precio)) {
+            cartItem.invalido = true;
+            cartItem.invalidoMsg = `El precio cambió (ahora $${prodOficial.precio})`;
+            hayCambios = true;
+        } else {
+            if (cartItem.invalido) hayCambios = true;
+            cartItem.invalido = false;
+            cartItem.invalidoMsg = '';
+        }
+    });
+    if (hayCambios) {
+        saveCart();
+        updateCartUI(); // Relenderiza mostrar grises y bloqueos
     }
 }
 
@@ -218,30 +244,38 @@ function updateCartUI() {
     cartItems.innerHTML = '';
     let totalItems = 0;
     let subtotal = 0;
+    let hayInvalidos = false;
 
     carrito.forEach(item => {
         let precioItem = parseFloat(item.precio);
         let precioOriginalHtml = '';
         
-        if (globalConfig && globalConfig.descuento_activo) {
-            const desc = globalConfig.descuento_porcentaje;
-            precioItem = precioItem * (1 - desc / 100);
-            precioOriginalHtml = `<del style="color:#999; font-size:12px; margin-right:5px;">$${parseFloat(item.precio).toFixed(2)}</del>`;
+        if (item.invalido) {
+            hayInvalidos = true;
+        } else {
+            if (globalConfig && globalConfig.descuento_activo) {
+                const desc = globalConfig.descuento_porcentaje;
+                precioItem = precioItem * (1 - desc / 100);
+                precioOriginalHtml = `<del style="color:#999; font-size:12px; margin-right:5px;">$${parseFloat(item.precio).toFixed(2)}</del>`;
+            }
+            totalItems += item.cantidad;
+            subtotal += precioItem * item.cantidad;
         }
-        
-        totalItems += item.cantidad;
-        subtotal += precioItem * item.cantidad;
+
+        const overlayStyle = item.invalido ? 'opacity: 0.5; background: #fdfdfd;' : '';
+        const dangerMsg = item.invalidoMsg ? `<span style="color:red; font-size:12px; font-weight:bold;">⚠️ ${item.invalidoMsg}</span><br>` : '';
 
         cartItems.innerHTML += `
-            <div class="cart-item">
+            <div class="cart-item" style="${overlayStyle}">
                 <img src="${item.img}" alt="${item.nombre}" class="cart-item-img">
                 <div class="cart-item-info">
                     <h4>${item.nombre}</h4>
                     <p>${precioOriginalHtml} <span style="color:#e74c3c; font-weight:bold;">$${precioItem.toFixed(2)}</span></p>
+                    ${dangerMsg}
                     <div class="cart-item-qty">
-                        <button onclick="updateQuantity(${item.id}, -1)">-</button>
+                        <button onclick="updateQuantity(${item.id}, -1)" ${item.invalido ? 'disabled' : ''}>-</button>
                         <span>${item.cantidad}</span>
-                        <button onclick="updateQuantity(${item.id}, 1)">+</button>
+                        <button onclick="updateQuantity(${item.id}, 1)" ${item.invalido ? 'disabled' : ''}>+</button>
                     </div>
                     <button class="remove-item" onclick="removeFromCart(${item.id})">Eliminar</button>
                 </div>
@@ -263,6 +297,18 @@ function updateCartUI() {
     }
     
     cartSubtotal.innerHTML = `$${subtotal.toFixed(2)} <br> ${avisoEnvio}`;
+
+    // Bloquear Botón de Checkout Frontend si hay inválidos
+    const checkoutBtn = document.querySelector('.cart-footer .btn-block');
+    if (checkoutBtn) {
+        if (hayInvalidos) {
+            checkoutBtn.style.opacity = '0.5';
+            checkoutBtn.onclick = () => alert("Por favor elimine los productos desactualizados o sin stock de su carrito para poder continuar.");
+        } else {
+            checkoutBtn.style.opacity = '1';
+            checkoutBtn.onclick = goToCheckout;
+        }
+    }
 }
 
 function goToCheckout() {

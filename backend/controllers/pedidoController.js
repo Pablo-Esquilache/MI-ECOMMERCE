@@ -27,13 +27,21 @@ const pedidoController = {
 
       let subtotal = 0;
       const detalles = [];
+      const carritoValidado = [];
+
       for (let item of carrito) {
-        let precioReal = Number(item.precio);
+        // [NUEVO] Leer precio oficial de la base de datos
+        const resultDb = await db.query('SELECT precio, nombre FROM productos WHERE id = $1', [item.id]);
+        if (resultDb.rows.length === 0) continue; // Ignorar productos que ya no existen
+        
+        let precioReal = Number(resultDb.rows[0].precio);
         if (conf.descuento_activo) {
             precioReal = precioReal * (1 - (Number(conf.descuento_porcentaje) || 0) / 100);
         }
-        // Sobrescribimos el precio en memoria para que MercadoPago lo lea descontado
+        
+        // Auto-actualizamos los datos del ítem del carrito (silenciosamente)
         item.precio = precioReal;
+        item.nombre = resultDb.rows[0].nombre;
         
         const itemSubtotal = precioReal * item.cantidad;
         subtotal += itemSubtotal;
@@ -42,7 +50,13 @@ const pedidoController = {
           cantidad: item.cantidad,
           precio_unitario: precioReal
         });
+        
+        carritoValidado.push(item);
       }
+      
+      // Aseguramos que MP solo reciba los ítems válidos
+      carrito = carritoValidado;
+
 
       // Costo de envio
       let costo_envio = 0; // Se asume 0 por ahora a falta de API externa
