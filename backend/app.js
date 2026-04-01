@@ -41,6 +41,21 @@ app.use('/api/sync', syncRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
+// --- DIAGNÓSTICO EMAIL (RENDER BUG ESCÁNER) ---
+app.get('/api/diagnostico-email', async (req, res) => {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: process.env.EMAIL_USER || '', pass: process.env.EMAIL_PASS || '' }
+    });
+    try {
+        await transporter.verify();
+        res.json({ success: true, mensaje: "✅ Conexión exitosa a Gmail.", usuario: process.env.EMAIL_USER });
+    } catch (error) {
+        res.json({ success: false, error_mensaje: error.message, error_completo: error, usuario_intentado: process.env.EMAIL_USER });
+    }
+});
+
 // Ruta fallback pura para SPA en el admin o el frontend principal
 app.use((req, res) => {
   if (req.originalUrl.startsWith('/admin')) {
