@@ -700,6 +700,12 @@ async function fetchConfiguracion() {
             document.getElementById('conf-banner-activo').checked = conf.banner_activo;
             document.getElementById('conf-banner-texto').value = conf.banner_texto || '';
             
+            document.getElementById('conf-banco-nombre').value = conf.banco_nombre || '';
+            document.getElementById('conf-banco-titular').value = conf.banco_titular || '';
+            document.getElementById('conf-banco-cuit').value = conf.banco_cuit || '';
+            document.getElementById('conf-banco-cbu').value = conf.banco_cbu || '';
+            document.getElementById('conf-banco-alias').value = conf.banco_alias || '';
+            
             document.getElementById('conf-envio-activo').checked = conf.envio_gratis_activo;
             document.getElementById('conf-envio-limite').value = conf.envio_gratis_limite || 0;
             
@@ -738,6 +744,12 @@ async function guardarConfiguracion() {
         
         banner_activo: document.getElementById('conf-banner-activo').checked,
         banner_texto: document.getElementById('conf-banner-texto').value.trim(),
+        
+        banco_nombre: document.getElementById('conf-banco-nombre').value.trim(),
+        banco_titular: document.getElementById('conf-banco-titular').value.trim(),
+        banco_cuit: document.getElementById('conf-banco-cuit').value.trim(),
+        banco_cbu: document.getElementById('conf-banco-cbu').value.trim(),
+        banco_alias: document.getElementById('conf-banco-alias').value.trim(),
         
         envio_gratis_activo: document.getElementById('conf-envio-activo').checked,
         envio_gratis_limite: Number(document.getElementById('conf-envio-limite').value) || 0,

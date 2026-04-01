@@ -8,6 +8,33 @@ document.addEventListener('DOMContentLoaded', () => {
     calcularEnvio(); // Calcular un envío inicial por defecto
 
     document.getElementById('checkout-form').addEventListener('submit', procesarCheckout);
+
+    const metodoPagoSelect = document.getElementById('metodo_pago');
+    const datosBancariosDiv = document.getElementById('datos-bancarios');
+
+    if (metodoPagoSelect && datosBancariosDiv) {
+        metodoPagoSelect.addEventListener('change', async (e) => {
+            if (e.target.value === 'transferencia') {
+                datosBancariosDiv.style.display = 'block';
+                try {
+                    const res = await fetch('/api/configuracion');
+                    const conf = await res.json();
+                    document.getElementById('b_banco').innerText = conf.banco_nombre || '-';
+                    document.getElementById('b_titular').innerText = conf.banco_titular || '-';
+                    document.getElementById('b_cuit').innerText = conf.banco_cuit || '-';
+                    document.getElementById('b_cbu').innerText = conf.banco_cbu || '-';
+                    document.getElementById('b_alias').innerText = conf.banco_alias || '-';
+                } catch (err) {
+                    console.error('Error cargando los datos bancarios:', err);
+                }
+            } else {
+                datosBancariosDiv.style.display = 'none';
+            }
+        });
+
+        // Trigger the check once on initialization
+        metodoPagoSelect.dispatchEvent(new Event('change'));
+    }
 });
 
 let subtotalCheckout = 0;

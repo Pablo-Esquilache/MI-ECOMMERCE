@@ -93,7 +93,8 @@ const adminController = {
         banner_activo, banner_texto,
         descuento_activo, descuento_porcentaje,
         envio_gratis_activo, envio_gratis_limite,
-        sync_activo, sync_api_key
+        sync_activo, sync_api_key,
+        banco_nombre, banco_titular, banco_cuit, banco_cbu, banco_alias
       } = req.body;
 
       await db.query('INSERT INTO configuracion (id) VALUES (1) ON CONFLICT (id) DO NOTHING');
@@ -107,7 +108,8 @@ const adminController = {
           banner_activo = $13, banner_texto = $14,
           descuento_activo = $15, descuento_porcentaje = $16,
           envio_gratis_activo = $17, envio_gratis_limite = $18,
-          sync_activo = $19, sync_api_key = $20, email_admin = $21
+          sync_activo = $19, sync_api_key = $20, email_admin = $21,
+          banco_nombre = $22, banco_titular = $23, banco_cuit = $24, banco_cbu = $25, banco_alias = $26
         WHERE id = 1
         RETURNING *
       `;
@@ -119,7 +121,8 @@ const adminController = {
         !!banner_activo, banner_texto||'',
         !!descuento_activo, descuento_porcentaje||0,
         !!envio_gratis_activo, envio_gratis_limite||0,
-        !!sync_activo, sync_api_key||'', email_admin||''
+        !!sync_activo, sync_api_key||'', email_admin||'',
+        banco_nombre||'', banco_titular||'', banco_cuit||'', banco_cbu||'', banco_alias||''
       ];
 
       const { rows } = await db.query(query, values);

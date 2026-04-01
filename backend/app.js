@@ -45,6 +45,18 @@ app.use('/api/sync', syncRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
+// --- AUTO-MIGRACIÓN DE BASE DE DATOS (Ajustes de Transferencia Bancaria) ---
+const db = require('./config/database');
+db.query(`
+    ALTER TABLE configuracion 
+    ADD COLUMN IF NOT EXISTS banco_nombre VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS banco_titular VARCHAR(150),
+    ADD COLUMN IF NOT EXISTS banco_cuit VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS banco_cbu VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS banco_alias VARCHAR(100);
+`).then(() => console.log("Migración de DB OK (Transferencias)"))
+  .catch(e => console.error("Aviso: Error migrando DB:", e.message));
+
 // --- DIAGNÓSTICO EMAIL (RENDER BUG ESCÁNER) ---
 app.get('/api/diagnostico-email', async (req, res) => {
     const nodemailer = require('nodemailer');
