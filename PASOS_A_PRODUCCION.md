@@ -63,8 +63,9 @@ No podemos usar la base de datos de tu computadora enchufada localmente.
 
 ### C. Webhooks y Redirección de MercadoPago (A finalizar estando Online)
 Una vez alojados en un servidor público (Render, etc), la ruta de webhooks de tu tienda será accesible desde internet. En esta etapa final deberemos:
-1. **Configurar el Aviso de Pago Automático:** Pegar nuestro enlace de Webhook en el panel de MercadoPago. Esto permitirá que MP notifique a nuestro servidor, cambiando el estado del pedido automáticamente a "Pagado" y **disparando el mail de pago exitoso sin intervención humana**.
-2. **Arreglar la Redirección (Auto-Return):** Haremos la corrección técnica final de sintaxis en el código de MercadoPago para que, cuando el cliente termine de pasar su tarjeta, sea devuelto fluidamente y de manera automática a la página principal de tu e-commerce.
+1. **Configurar el Aviso de Pago Automático:** Pegar nuestro enlace de Webhook en el panel de MercadoPago (`https://tu-url.onrender.com/api/webhooks/mercadopago`). Esto permite que MP notifique a nuestro servidor.
+2. **Variable Secreta:** Cuando configures MercadoPago Webhook, te dará una clave secreta larguísima. Esa clave debes añadirla a las Variables de Entorno de Render bajo el nombre **`MP_WEBHOOK_SECRET`**. Esto da seguridad total antibartolos.
+3. **Arreglar la Redirección (Auto-Return):** El código ya está programado para enviar automáticamente a los clientes del portal de pago de retorno a tu dominio original sano y salvo una vez hayan pagado.
 
 ### D. Cierre de Fronteras API (CORS)
 **Importante:** En cuanto tengamos asignado el Dominio Público Oficial (ej: `pablolibros.com`), deberemos entrar al archivo `backend/app.js` y bloquear la compuerta de la línea `app.use(cors())` indicando que únicamente acepte conexiones webs que vengan de ese dominio exacto de tu marca. Esto evitará que piratas informáticos conecten sus propias páginas a nuestra Base de Datos para robar inventario.

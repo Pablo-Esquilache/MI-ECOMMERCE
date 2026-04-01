@@ -38,14 +38,14 @@ const mercadopagoService = {
           surname: cliente.apellido,
           email: cliente.email,
         },
-        backUrls: {
-          success: `${basePath}/?status=success`,
-          failure: `${basePath}/?status=failure`,
-          pending: `${basePath}/?status=pending`,
+        back_urls: {
+          success: `${basePath}/api/webhooks/mercadopago/return?status=success`,
+          failure: `${basePath}/api/webhooks/mercadopago/return?status=failure`,
+          pending: `${basePath}/api/webhooks/mercadopago/return?status=pending`,
         },
-        autoReturn: 'approved',
-        externalReference: pedido.id.toString(),
-        notificationUrl: `${basePath}/api/webhooks/mercadopago`,
+        auto_return: 'approved',
+        external_reference: pedido.id.toString(),
+        notification_url: `${basePath}/api/webhooks/mercadopago`,
       };
 
       // 3. Crear preferencia
