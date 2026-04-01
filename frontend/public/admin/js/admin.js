@@ -171,6 +171,7 @@ function renderAdminPedidos(pedidos) {
                 <select onchange="updatePedidoStatus(${p.id}, this.value)" style="padding:4px; border-radius:4px;">
                     <option value="pendiente" ${p.estado==='pendiente'?'selected':''}>Pendiente</option>
                     <option value="pagado" ${isPagado?'selected':''}>Pagado</option>
+                    <option value="preparando_envio" ${p.estado==='preparando_envio'?'selected':''}>Preparando Envío</option>
                     <option value="enviado" ${isSend?'selected':''}>Enviado</option>
                     <option value="entregado" ${p.estado==='entregado'?'selected':''}>Entregado</option>
                     <option value="cancelado" ${p.estado==='cancelado'?'selected':''}>Cancelado</option>

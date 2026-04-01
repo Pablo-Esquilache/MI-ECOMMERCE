@@ -146,6 +146,8 @@ const pedidoController = {
                   emailService.enviarCorreoEnvio(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
               } else if (estado === 'pagado') {
                   emailService.enviarCorreoPago(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
+              } else if (estado === 'preparando_envio') {
+                  emailService.enviarCorreoPreparandoEnvio(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
               } else if (estado === 'cancelado') {
                   emailService.enviarCorreoCancelado(pedidoDetails.email, pedidoDetails).catch(e => console.error(e));
               } else if (estado === 'entregado') {

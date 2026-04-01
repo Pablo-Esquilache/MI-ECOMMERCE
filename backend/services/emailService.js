@@ -91,6 +91,25 @@ const emailService = {
         }
     },
 
+    enviarCorreoPreparandoEnvio: async (cliente_email, pedidoData) => {
+        const pId = pedidoData.id;
+        const nombreCliente = pedidoData.nombre || 'Cliente';
+        const mailOptions = {
+            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            to: cliente_email,
+            subject: `Tu pedido #${pId} está siendo preparado 📦`,
+            html: `<h1>¡Manos a la obra con tu pedido!</h1>
+                   <p>Hola ${nombreCliente}, te confirmamos que tu orden #${pId} ya se encuentra registrada en la etapa de empaquetado y muy pronto será despachada.</p>
+                   <p>Si compraste con retiro en sucursal, te avisaremos cuando esté listo. Si es con envío, pronto saldrá en camino.</p>
+                   <p>¡Gracias por tu paciencia!</p>`
+        };
+
+        if (useRealEmail) {
+            try { await transporter.sendMail(mailOptions); console.log(`Correo preparando envio enviado a ${cliente_email}.`); }
+            catch (error) { simularEnvio(mailOptions); }
+        } else { simularEnvio(mailOptions); }
+    },
+
     enviarCorreoEnvio: async (cliente_email, pedidoData) => {
         const pId = pedidoData.id;
         const mailOptions = {
