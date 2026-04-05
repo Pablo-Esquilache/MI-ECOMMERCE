@@ -353,43 +353,7 @@ function goToCheckout() {
     window.location.href = '/checkout.html';
 }
 
-// --- Contacto Logic ---
-async function procesarContacto(e) {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.innerText;
-    btn.innerText = "Enviando...";
-    btn.disabled = true;
-
-    const payload = {
-        nombre: document.getElementById('contacto-nombre').value,
-        email: document.getElementById('contacto-email').value,
-        asunto: document.getElementById('contacto-asunto').value,
-        mensaje: document.getElementById('contacto-mensaje').value
-    };
-
-    try {
-        const res = await fetch(`${API_URL}/contacto`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        
-        if(res.ok) {
-            alert('¡Mensaje enviado con éxito! Nos contactaremos a la brevedad.');
-            e.target.reset();
-        } else {
-            alert('Error al enviar el mensaje: ' + (data.error || 'Intente nuevamente.'));
-        }
-    } catch (err) {
-        console.error('Error al enviar contacto', err);
-        alert('Ocurrió un error. Verifica tu conexión.');
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-}
+// Funciones de Contacto consolidadas. (Función duplicada antigua borrada para evitar race-conditions)
 
 // --- Carousel Logic ---
 function initCarousel() {
