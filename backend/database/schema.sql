@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS "pedidos";
 DROP TABLE IF EXISTS "productos";
 DROP TABLE IF EXISTS "clientes";
 DROP TABLE IF EXISTS "administradores";
+DROP TABLE IF EXISTS "configuracion";
 
 -- Tabla de Administradores
 CREATE TABLE "administradores" (
@@ -73,6 +74,39 @@ CREATE TABLE "detalles_pedido" (
   FOREIGN KEY ("pedido_id") REFERENCES "pedidos" ("id") ON DELETE CASCADE,
   FOREIGN KEY ("producto_id") REFERENCES "productos" ("id") ON DELETE RESTRICT
 );
+
+-- Tabla de Configuración Global
+CREATE TABLE "configuracion" (
+  "id" SERIAL PRIMARY KEY,
+  "email" VARCHAR(255) DEFAULT '',
+  "telefono" VARCHAR(255) DEFAULT '',
+  "direccion" VARCHAR(255) DEFAULT '',
+  "admin_nombre" VARCHAR(255) DEFAULT 'Admin',
+  "email_admin" VARCHAR(255) DEFAULT '',
+  "instagram_activo" BOOLEAN DEFAULT false,
+  "instagram_url" VARCHAR(255) DEFAULT '',
+  "facebook_activo" BOOLEAN DEFAULT false,
+  "facebook_url" VARCHAR(255) DEFAULT '',
+  "tiktok_activo" BOOLEAN DEFAULT false,
+  "tiktok_url" VARCHAR(255) DEFAULT '',
+  "twitter_activo" BOOLEAN DEFAULT false,
+  "twitter_url" VARCHAR(255) DEFAULT '',
+  "banner_activo" BOOLEAN DEFAULT false,
+  "banner_texto" VARCHAR(255) DEFAULT '¡Aprovecha nuestras ofertas exclusivas!',
+  "descuento_activo" BOOLEAN DEFAULT false,
+  "descuento_porcentaje" NUMERIC(5,2) DEFAULT 0,
+  "envio_gratis_activo" BOOLEAN DEFAULT false,
+  "envio_gratis_limite" NUMERIC(10,2) DEFAULT 0,
+  "sync_activo" BOOLEAN DEFAULT false,
+  "sync_api_key" VARCHAR(255) DEFAULT '',
+  "banco_nombre" VARCHAR(100) DEFAULT '',
+  "banco_titular" VARCHAR(150) DEFAULT '',
+  "banco_cuit" VARCHAR(50) DEFAULT '',
+  "banco_cbu" VARCHAR(100) DEFAULT '',
+  "banco_alias" VARCHAR(100) DEFAULT ''
+);
+
+INSERT INTO "configuracion" ("id", "admin_nombre") VALUES (1, 'Administrador') ON CONFLICT ("id") DO NOTHING;
 
 -- Administrador por defecto (password = admin123)
 -- Hash de bcrypt para "admin123" generado en Node.js ($2b$10$w4rYqL7yP0N3vV/Lh1D6YOSm9Gj2j3u4P5S8UvP6QxZ4E5wD0oM9q)
