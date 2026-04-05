@@ -6,6 +6,8 @@ if (dns.setDefaultResultOrder) {
 
 const transporter = nodemailer.createTransport({
     service: 'gmail', // o el servicio preferido
+    connectionTimeout: 8000, // Limite de 8 seg para evitar colapso de "Enviando..."
+    socketTimeout: 10000,
     auth: {
         user: process.env.EMAIL_USER || '',
         pass: process.env.EMAIL_PASS || ''
