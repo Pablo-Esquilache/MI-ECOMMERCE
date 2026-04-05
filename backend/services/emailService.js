@@ -12,18 +12,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Comprobar si las credenciales son reales. Si no, usamos el fallback.
-let useRealEmail = false;
+// Forzamos el uso de SMTP independientemente del tiempo de arranque del servidor.
+// Esto evita falsos negativos (bloqueos permanentes) de red al reiniciar Render.
+const useRealEmail = process.env.EMAIL_USER && process.env.EMAIL_PASS ? true : false;
 
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log('⚠️ [EmailService] Credenciales de correo no válidas o no encontradas. Activando modo simulación (fallback por consola).');
-        useRealEmail = false;
-    } else {
-        console.log('✅ [EmailService] Servidor de correo listo para enviar mensajes reales.');
-        useRealEmail = true;
-    }
-});
+if (useRealEmail) {
+    console.log('✅ [EmailService] Variables detectadas. Intentaremos enviar correos a la fuerza.');
+} else {
+    console.log('⚠️ [EmailService] Faltan credenciales SMTP. Activando guardafallas de consola.');
+}
 
 const db = require('../config/database');
 
@@ -81,7 +78,6 @@ const emailService = {
             try {
                 await transporter.sendMail(mailOptions);
                 console.log(`Correo de pago confirmado enviado a ${clienteMail}.`);
-                console.log(`Correo de pago confirmado enviado a ${cliente_email}.`);
             } catch (error) {
                 console.error('Error al enviar correo de pago (real):', error);
                 simularEnvio(mailOptions);
