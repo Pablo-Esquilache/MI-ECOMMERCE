@@ -5,7 +5,9 @@ if (dns.setDefaultResultOrder) {
 }
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // o el servicio preferido
+    host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_PORT === '465', // true si usarán el 465 de Brevo
     connectionTimeout: 8000, // Limite de 8 seg para evitar colapso de "Enviando..."
     socketTimeout: 10000,
     auth: {
@@ -46,7 +48,7 @@ const simularEnvio = (opciones) => {
 const emailService = {
     enviarCorreoContacto: async (nombre, email, asunto, mensaje) => {
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: process.env.EMAIL_CONTACTO || process.env.EMAIL_USER || 'admin@tienda.com',
             subject: `Nuevo mensaje de contacto: ${asunto}`,
             text: `Has recibido un nuevo mensaje de contacto.\n\nNombre: ${nombre}\nEmail: ${email}\n\nMensaje:\n${mensaje}`
@@ -67,7 +69,7 @@ const emailService = {
 
     enviarCorreoPago: async (clienteMail, detallesPedido) => {
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: clienteMail,
             subject: `¡Pago confirmado! Pedido #${detallesPedido.id}`,
             html: `<h1>¡Gracias por tu compra!</h1>
@@ -93,7 +95,7 @@ const emailService = {
         const pId = pedidoData.id;
         const nombreCliente = pedidoData.nombre || 'Cliente';
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: cliente_email,
             subject: `Tu pedido #${pId} está siendo preparado 📦`,
             html: `<h1>¡Manos a la obra con tu pedido!</h1>
@@ -111,7 +113,7 @@ const emailService = {
     enviarCorreoEnvio: async (cliente_email, pedidoData) => {
         const pId = pedidoData.id;
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: cliente_email,
             subject: `Tu pedido #${pId} está en camino 🚚`,
             html: `<h1>¡Tu pedido ha sido despachado!</h1>
@@ -138,7 +140,7 @@ const emailService = {
     enviarCorreoEntregado: async (cliente_email, pedidoData) => {
         const pId = pedidoData.id;
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: cliente_email,
             subject: `¡Tu pedido #${pId} ha sido Entregado! 🎉`,
             html: `<h1>¡Pedido Entregado!</h1>
@@ -154,7 +156,7 @@ const emailService = {
 
     enviarCorreoCancelado: async (clienteMail, detallesPedido) => {
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: clienteMail,
             subject: `Pedido #${detallesPedido.id} Cancelado`,
             html: `<h1>Pedido Cancelado</h1>
@@ -170,7 +172,7 @@ const emailService = {
 
     enviarCorreoHtml: async (toEmail, subject, htmlContent) => {
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
             to: toEmail,
             subject: subject,
             html: htmlContent
@@ -192,7 +194,7 @@ const emailService = {
     enviarCorreoNuevaVentaAdmin: async (detallesPedido) => {
         const adminEmail = await getAdminEmail();
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Tienda Online Venta" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online Venta" <noreply@tienda.com>',
             to: adminEmail,
             subject: `💰 ¡Nueva Venta! Pedido #${detallesPedido.id}`,
             html: `<h1>¡Felicitaciones, ingresó una nueva venta!</h1>
@@ -211,7 +213,7 @@ const emailService = {
     notificarAdminNuevoPedido: async (pedidoData) => {
         const adminEmail = await getAdminEmail();
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Sistema Tienda" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Sistema Tienda" <noreply@tienda.com>',
             to: adminEmail,
             subject: `[NUEVO PEDIDO] #${pedidoData.id} Creado en estado Pendiente`,
             html: `<h3>Se ha creado un nuevo pedido en el sistema.</h3>
@@ -229,7 +231,7 @@ const emailService = {
     notificarAdminCambioEstado: async (pedidoData, nuevoEstado) => {
         const adminEmail = await getAdminEmail();
         const mailOptions = {
-            from: process.env.EMAIL_USER || '"Sistema Tienda" <noreply@tienda.com>',
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Sistema Tienda" <noreply@tienda.com>',
             to: adminEmail,
             subject: `[CAMBIO DE ESTADO] Pedido #${pedidoData.id} -> ${nuevoEstado.toUpperCase()}`,
             html: `<h3>Actualización de Pedido</h3>

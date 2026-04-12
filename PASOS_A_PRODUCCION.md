@@ -107,3 +107,28 @@ Todos estos cambios de código los tenés que hacer dentro del archivo `frontend
 4. **Productos del Catálogo:**
    - Actualmente insertamos una base de datos de 20 productos de librería con fotos descargadas temporalmente de internet (`reset_db.js`). 
    - **Qué hacer:** Esto no requiere programación. Desde tu propio programa facturador físico (Electron), simplemente seleccioná o agregá la URL real de la foto de cada producto y hacé clic en "Actualizar/Guardar" para que se sincronice y pise nuestra foto genética en la Nube.
+
+---
+
+## ✉️ 6. Mensaje de Prueba para el Cliente
+
+*(Podés copiar, pegar y enviarle el siguiente mensaje directamente)*
+
+¡Hola! Ya está subida la primera versión de prueba del e-commerce para que puedas navegar, ver cómo está quedando y hacer simulaciones de compra.
+
+🌐 **Tu Tienda Online (La que verán tus clientes):**
+Link: https://mi-ecommerce-63ue.onrender.com/
+
+⚙️ **Tu Panel de Administración (Privado):**
+Desde acá vas a ver los pedidos que entran, cambiar sus estados, etc.
+Link: https://mi-ecommerce-63ue.onrender.com/admin/login.html
+- Usuario: `patricia@gmail.com`
+- Contraseña: `123456`
+
+💳 **Datos para Mercado Pago (Compras de prueba):**
+Para probar comprar sin gastar plata real, al momento de pagar elegí ingresar con cuenta de Mercado Pago y usá estos datos de prueba que generamos:
+- **Usuario:** `TESTUSER8508561653096638027`
+- **Contraseña:** `Ocj2wQuxW4`
+- **Código de Verificación:** `785591`
+
+Entrá, jugá bastante con la página, probá cambiar un pedido a "Enviado" desde el panel y cualquier duda me vas contando. ¡Que lo disfrutes!
