@@ -8,16 +8,20 @@ Este es el paso a paso exacto que debemos seguir para agarrar este código que c
 
 Antes de subir todo, necesitamos las llaves reales de los servicios de terceros:
 
-### A. Correos Electrónicos (Gmail App Password)
-Google no permite usar tu contraseña normal para sistemas automatizados. Debes generar una "Clave de Aplicación".
-**⚠️ CRÍTICO:** Este paso lo debés hacer utilizando **la cuenta de Gmail real del cliente/dueño del comercio**, para que los correos salgan a su nombre y le lleguen allí las respuestas comerciales.
-1. Inicia sesión en tu cuenta de Google (la del cliente).
-2. Ve a **Gestionar tu cuenta de Google** > **Seguridad**.
-3. Asegúrate de tener activada la **Verificación en 2 pasos** (es obligatorio).
-4. Una vez activada, usa la barra deflectora de búsqueda arriba y busca **"Contraseñas de aplicación"**.
-5. Crea una nueva llamándola "E-commerce" o "Tienda Online".
-6. Te dará una clave de **16 letras sin espacios**.
-7. Esa clave deberás pegarla en nuestro archivo `backend/.env` bajo la variable `EMAIL_PASS`, junto con la cuenta de correo oficial en `EMAIL_USER`.
+### A. Correos Electrónicos (Brevo SMTP - Oficial)
+Debido a bloqueos de seguridad en servidores de hosting gratuitos (Render), utilizamos **Brevo** como servicio profesional de envío de correos, ya que nunca falla y entrega más rápido.
+
+**⚠️ CRÍTICO:** Cuando instales el sistema para un cliente real, seguí estos pasos:
+1. Creale una cuenta gratuita en **Brevo** (o pedile que se la cree).
+2. En Brevo, ve a la configuración de Perfil > **"Remitentes e IP"** y agrega/valida la cuenta de correo electrónico oficial del comercio (Ej. `ventas@tumarca.com`).
+3. Ve al menú **SMTP y API** > Pestaña **SMTP**. Allí obtendrás las credenciales del servidor.
+4. Estas credenciales las tenés que colocar en las **Variables de Entorno** del Servidor en Render:
+   - `EMAIL_HOST`: `smtp-relay.brevo.com`
+   - `EMAIL_PORT`: `2525` (Usamos el 2525 para evadir los bloqueos de Render al 587).
+   - `EMAIL_USER`: El "Login" que te da Brevo (es un mail interno raro, ej: `a7384...@smtp-brevo.com`).
+   - `EMAIL_PASS`: El "Master Password" largo que te genera Brevo.
+   - `EMAIL_FROM`: El correo que validaste en el paso 2 (`ventas@tumarca.com`). **Es clave, pues es el remitente que verán los clientes.**
+5. **Recepción de Avisos:** Para decirle al sistema *a qué correo* deben llegar las notificaciones de nuevas ventas, simplemente entraste al **Panel de Administrador de la página** > pestaña de **Configuración** y actualizá el "Email de Administrador".
 
 ### B. MercadoPago (Producción)
 1. Ingresa el panel de Developers de MercadoPago.
