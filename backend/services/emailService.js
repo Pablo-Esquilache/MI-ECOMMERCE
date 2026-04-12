@@ -33,7 +33,7 @@ const getAdminEmail = async () => {
         const { rows } = await db.query('SELECT email_admin FROM configuracion WHERE id = 1');
         if (rows.length > 0 && rows[0].email_admin) return rows[0].email_admin;
     } catch (e) { console.error('Error fetching email_admin', e); }
-    return process.env.EMAIL_USER || 'admin@tienda.com';
+    return process.env.EMAIL_FROM || 'admin@tienda.com';
 };
 
 const simularEnvio = (opciones) => {
@@ -49,7 +49,7 @@ const emailService = {
     enviarCorreoContacto: async (nombre, email, asunto, mensaje) => {
         const mailOptions = {
             from: process.env.EMAIL_FROM || process.env.EMAIL_USER || '"Tienda Online" <noreply@tienda.com>',
-            to: process.env.EMAIL_CONTACTO || process.env.EMAIL_USER || 'admin@tienda.com',
+            to: process.env.EMAIL_CONTACTO || process.env.EMAIL_FROM || 'admin@tienda.com',
             subject: `Nuevo mensaje de contacto: ${asunto}`,
             text: `Has recibido un nuevo mensaje de contacto.\n\nNombre: ${nombre}\nEmail: ${email}\n\nMensaje:\n${mensaje}`
         };

@@ -9,6 +9,7 @@ if (dns.setDefaultResultOrder) {
 
 // Inicializar Express
 const app = express();
+app.set('trust proxy', 1); // Configuración vital para rate-limit en Render
 const PORT = process.env.PORT || 3000;
 
 // Importar rutas
