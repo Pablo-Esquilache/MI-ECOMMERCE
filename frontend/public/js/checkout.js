@@ -81,7 +81,8 @@ async function procesarCheckout(e) {
         telefono: document.getElementById('telefono').value,
         genero: document.getElementById('genero').value,
         direccion: document.getElementById('direccion').value,
-        ciudad: document.getElementById('ciudad').value,
+        // Combinamos Partido y Ciudad de forma transparente para el Backend
+        ciudad: document.getElementById('partido').value + ' - ' + document.getElementById('ciudad').value,
         provincia: document.getElementById('provincia').value,
         codigo_postal: document.getElementById('codigo_postal').value
     };
@@ -138,55 +139,74 @@ async function procesarCheckout(e) {
 // --- Integración API GeoRef / Argentina ---
 async function inicializarGeoRef() {
     const provSelect = document.getElementById('provincia');
+    const partidoSelect = document.getElementById('partido');
     const ciudadSelect = document.getElementById('ciudad');
-    if(!provSelect || !ciudadSelect) return;
+    if(!provSelect || !partidoSelect || !ciudadSelect) return;
 
     try {
         const provRes = await fetch('https://apis.datos.gob.ar/georef/api/provincias?campos=id,nombre&max=100');
         const provData = await provRes.json();
         
-        // Ordenar alfabéticamente
         provData.provincias.sort((a,b) => a.nombre.localeCompare(b.nombre));
-        
         provSelect.innerHTML = '<option value="">Seleccione Provincia...</option>';
-        provData.provincias.forEach(p => {
-            provSelect.innerHTML += `<option value="${p.nombre}" data-id="${p.id}">${p.nombre}</option>`;
-        });
+        provData.provincias.forEach(p => provSelect.innerHTML += `<option value="${p.nombre}" data-id="${p.id}">${p.nombre}</option>`);
 
-        provSelect.addEventListener('change', async (e) => {
-            const selectedOption = provSelect.options[provSelect.selectedIndex];
-            const provId = selectedOption.getAttribute('data-id');
+        provSelect.addEventListener('change', async () => {
+            const provId = provSelect.options[provSelect.selectedIndex].getAttribute('data-id');
+            partidoSelect.innerHTML = '<option value="">Cargando...</option>';
+            partidoSelect.disabled = true;
+            ciudadSelect.innerHTML = '<option value="">Elija Partido...</option>';
+            ciudadSelect.disabled = true;
             
             if (!provId) {
-                ciudadSelect.innerHTML = '<option value="">Seleccionar provincia primero...</option>';
-                ciudadSelect.disabled = true;
+                partidoSelect.innerHTML = '<option value="">Elija Provincia...</option>';
                 return;
             }
 
-            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
-            ciudadSelect.disabled = true;
-
             try {
-                // Usamos municipios (partidos/departamentos) para asegurar que quepan en el max=1000
-                const muniRes = await fetch(`https://apis.datos.gob.ar/georef/api/municipios?provincia=${provId}&campos=nombre&max=1000`);
-                const muniData = await muniRes.json();
+                // Departamentos abarca a "Partidos" en Buenos Aires y "Departamentos" en el resto de Argentina
+                const deptoRes = await fetch(`https://apis.datos.gob.ar/georef/api/departamentos?provincia=${provId}&campos=id,nombre&max=500`);
+                const deptoData = await deptoRes.json();
+                deptoData.departamentos.sort((a,b) => a.nombre.localeCompare(b.nombre));
                 
-                muniData.municipios.sort((a,b) => a.nombre.localeCompare(b.nombre));
-                
-                ciudadSelect.innerHTML = '<option value="">Seleccione Ciudad...</option>';
-                // Evitamos duplicados sutiles si hay nombres iguales aunque técnicamente todos los municipios son distintos
-                muniData.municipios.forEach(m => {
-                    ciudadSelect.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`;
-                });
-                ciudadSelect.disabled = false;
+                partidoSelect.innerHTML = '<option value="">Seleccione Partido/Depto...</option>';
+                deptoData.departamentos.forEach(d => partidoSelect.innerHTML += `<option value="${d.nombre}" data-id="${d.id}">${d.nombre}</option>`);
+                partidoSelect.disabled = false;
             } catch (err) {
-                console.error("Error cargando ciudades", err);
-                ciudadSelect.innerHTML = '<option value="">Error de conexión (Ciudad)</option>';
-                ciudadSelect.disabled = false;
+                console.error("Error cargando partidos", err);
+                partidoSelect.innerHTML = '<option value="">Error de conexión</option>';
             }
         });
+
+        partidoSelect.addEventListener('change', async () => {
+             const deptoId = partidoSelect.options[partidoSelect.selectedIndex].getAttribute('data-id');
+             ciudadSelect.innerHTML = '<option value="">Cargando...</option>';
+             ciudadSelect.disabled = true;
+             
+             if (!deptoId) {
+                 ciudadSelect.innerHTML = '<option value="">Elija Partido...</option>';
+                 return;
+             }
+             
+             try {
+                 const locRes = await fetch(`https://apis.datos.gob.ar/georef/api/localidades?departamento=${deptoId}&campos=id,nombre&max=1000`);
+                 const locData = await locRes.json();
+                 
+                 locData.localidades.sort((a,b) => a.nombre.localeCompare(b.nombre));
+                 
+                 ciudadSelect.innerHTML = '<option value="">Seleccione Localidad...</option>';
+                 // Usamos un Set para evitar las localidades con mismo nombre pero distinto ID (barrios/parajes integrados)
+                 const localidadesUnicas = [...new Set(locData.localidades.map(l => l.nombre))];
+                 localidadesUnicas.forEach(l => ciudadSelect.innerHTML += `<option value="${l}">${l}</option>`);
+                 ciudadSelect.disabled = false;
+             } catch (err) {
+                 console.error("Error cargando localidades", err);
+                 ciudadSelect.innerHTML = '<option value="">Error de conexión</option>';
+             }
+        });
+
     } catch(err) {
         console.error("Error cargando provincias", err);
-        provSelect.innerHTML = '<option value="">Error de conexión (Provincia)</option>';
+        provSelect.innerHTML = '<option value="">Error de conexión</option>';
     }
 }
