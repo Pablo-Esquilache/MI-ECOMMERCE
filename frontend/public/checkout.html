@@ -70,8 +70,8 @@
                 <h3 style="margin-top: 20px;">Dirección de Envío</h3>
                 <div class="form-group"><label class="required">Dirección Completa</label><input type="text" id="direccion" required></div>
                 <div style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex:1;"><label class="required">Ciudad</label><input type="text" id="ciudad" required></div>
-                    <div class="form-group" style="flex:1;"><label class="required">Provincia</label><input type="text" id="provincia" required></div>
+                    <div class="form-group" style="flex:1;"><label class="required">Provincia</label><select id="provincia" required><option value="">Cargando provincias...</option></select></div>
+                    <div class="form-group" style="flex:1;"><label class="required">Ciudad/Localidad</label><select id="ciudad" required disabled><option value="">Seleccionar provincia primero...</option></select></div>
                 </div>
                 <div class="form-group"><label class="required">Código Postal</label><input type="text" id="codigo_postal" required onchange="calcularEnvio()"></div>
 

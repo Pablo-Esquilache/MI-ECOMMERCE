@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     renderSummary();
     calcularEnvio(); // Calcular un envío inicial por defecto
+    inicializarGeoRef(); // Iniciar selectores de GeoRef
 
     document.getElementById('checkout-form').addEventListener('submit', procesarCheckout);
 
@@ -131,5 +132,61 @@ async function procesarCheckout(e) {
         console.error(error);
         alert('Ocurrió un error inesperado de red.');
         document.querySelector('button[type="submit"]').disabled = false;
+    }
+}
+
+// --- Integración API GeoRef / Argentina ---
+async function inicializarGeoRef() {
+    const provSelect = document.getElementById('provincia');
+    const ciudadSelect = document.getElementById('ciudad');
+    if(!provSelect || !ciudadSelect) return;
+
+    try {
+        const provRes = await fetch('https://apis.datos.gob.ar/georef/api/provincias?campos=id,nombre&max=100');
+        const provData = await provRes.json();
+        
+        // Ordenar alfabéticamente
+        provData.provincias.sort((a,b) => a.nombre.localeCompare(b.nombre));
+        
+        provSelect.innerHTML = '<option value="">Seleccione Provincia...</option>';
+        provData.provincias.forEach(p => {
+            provSelect.innerHTML += `<option value="${p.nombre}" data-id="${p.id}">${p.nombre}</option>`;
+        });
+
+        provSelect.addEventListener('change', async (e) => {
+            const selectedOption = provSelect.options[provSelect.selectedIndex];
+            const provId = selectedOption.getAttribute('data-id');
+            
+            if (!provId) {
+                ciudadSelect.innerHTML = '<option value="">Seleccionar provincia primero...</option>';
+                ciudadSelect.disabled = true;
+                return;
+            }
+
+            ciudadSelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            ciudadSelect.disabled = true;
+
+            try {
+                // Usamos municipios (partidos/departamentos) para asegurar que quepan en el max=1000
+                const muniRes = await fetch(`https://apis.datos.gob.ar/georef/api/municipios?provincia=${provId}&campos=nombre&max=1000`);
+                const muniData = await muniRes.json();
+                
+                muniData.municipios.sort((a,b) => a.nombre.localeCompare(b.nombre));
+                
+                ciudadSelect.innerHTML = '<option value="">Seleccione Ciudad...</option>';
+                // Evitamos duplicados sutiles si hay nombres iguales aunque técnicamente todos los municipios son distintos
+                muniData.municipios.forEach(m => {
+                    ciudadSelect.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`;
+                });
+                ciudadSelect.disabled = false;
+            } catch (err) {
+                console.error("Error cargando ciudades", err);
+                ciudadSelect.innerHTML = '<option value="">Error de conexión (Ciudad)</option>';
+                ciudadSelect.disabled = false;
+            }
+        });
+    } catch(err) {
+        console.error("Error cargando provincias", err);
+        provSelect.innerHTML = '<option value="">Error de conexión (Provincia)</option>';
     }
 }
